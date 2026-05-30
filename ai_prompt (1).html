@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 AI Prompt 智能寶庫</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Noto Sans TC -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            /* 調整為水藍色系的高質感漸層底色 */
+            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 60%, #e0f2fe 100%);
+            background-attachment: fixed;
+        }
+        /* 自訂卡片內文滾動條樣式，讓它更精緻 */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 pb-12">
+
+    <!-- 頂部導航 / 標題區 -->
+    <header class="max-w-7xl mx-auto px-4 pt-10 pb-6 text-center">
+        <div class="flex justify-center items-center gap-2 mb-2">
+            <span class="text-3xl">🚀</span>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-slate-800 tracking-wide">AI Prompt 智能寶庫</h1>
+        </div>
+        
+        <!-- 原始資料 Google Sheet 連結 -->
+        <a href="https://docs.google.com/spreadsheets/d/1mlRa0tpdhuB68J86BuFC6hWGSEKyTyw5tHNJ5ooWGqg/edit?usp=sharing" 
+           target="_blank" 
+           class="inline-flex items-center gap-1.5 text-xs text-sky-600 hover:text-sky-800 transition-colors duration-200">
+            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+            <span>開啟原始資料 Google Sheet</span>
+        </a>
+    </header>
+
+    <!-- 主容器 -->
+    <main class="max-w-7xl mx-auto px-4 md:px-6">
+        
+        <!-- 搜尋列區塊 -->
+        <div class="max-w-xl mx-auto mb-6">
+            <!-- 聚焦框調整為水藍色 (sky-400) -->
+            <div class="relative shadow-md rounded-full bg-white border border-sky-100 focus-within:ring-2 focus-within:ring-sky-400 focus-within:border-sky-400 transition-all duration-300">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-sky-400">
+                    <i data-lucide="search" class="w-5 h-5"></i>
+                </span>
+                <input type="text" 
+                       id="searchInput"
+                       placeholder="搜尋提示詞..." 
+                       class="w-full py-3.5 pl-11 pr-4 rounded-full text-slate-700 bg-transparent outline-none text-base placeholder-slate-400">
+            </div>
+        </div>
+
+        <!-- 分類標籤區 (動態產生，此處為骨架預留空間) -->
+        <div class="flex flex-wrap justify-center gap-2 mb-8 max-w-5xl mx-auto" id="categoryContainer">
+            <button class="px-5 py-2 rounded-full text-sm font-medium bg-sky-600 text-white shadow-sm transition-all duration-200">全部</button>
+            <!-- 其他分類按鈕會由 JS 動態載入 -->
+        </div>
+
+        <!-- 區段標題：AI 協思 -->
+        <div class="flex items-center gap-2 mb-6 border-b border-sky-200/60 pb-3">
+            <span class="text-2xl">🧠</span>
+            <h2 class="text-xl md:text-2xl font-bold text-slate-800">AI 協思</h2>
+            <span id="cardCount" class="ml-2 px-2 py-0.5 bg-sky-100/80 text-sky-700 rounded-full text-xs font-semibold">載入中...</span>
+        </div>
+
+        <!-- 骨架載入動畫 (Skeleton Loader) - 調整為微水藍色調 -->
+        <div id="skeletonLoader" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <!-- 產生 8 個骨架卡片 -->
+            <script>
+                for (let i = 0; i < 8; i++) {
+                    document.write(`
+                        <div class="bg-white/80 rounded-2xl shadow-sm border-t-4 border-slate-200 p-5 animate-pulse flex flex-col justify-between h-[360px]">
+                            <div>
+                                <div class="h-4 bg-sky-100/70 rounded w-1/3 mb-3"></div>
+                                <div class="h-6 bg-sky-100/70 rounded w-2/3 mb-4"></div>
+                                <div class="space-y-2">
+                                    <div class="h-3 bg-sky-100/50 rounded"></div>
+                                    <div class="h-3 bg-sky-100/50 rounded w-5/6"></div>
+                                    <div class="h-3 bg-sky-100/50 rounded w-4/5"></div>
+                                    <div class="h-3 bg-sky-100/50 rounded w-full"></div>
+                                </div>
+                            </div>
+                            <div class="h-10 bg-sky-100/70 rounded-lg w-full mt-4"></div>
+                        </div>
+                    `);
+                }
+            </script>
+        </div>
+
+        <!-- 錯誤 / 查無資料提示區 -->
+        <div id="noDataAlert" class="hidden text-center py-12">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-sky-50 text-sky-400 mb-4">
+                <i data-lucide="info" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-lg font-medium text-slate-600">沒有找到符合條件的 Prompt</h3>
+            <p class="text-slate-400 mt-1">請嘗試換個關鍵字搜尋或切換分類</p>
+        </div>
+
+        <!-- 卡片容器區 (資料動態渲染) -->
+        <div id="promptGrid" class="hidden grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <!-- 卡片會由此處由 JavaScript 動態生成 -->
+        </div>
+
+    </main>
+
+    <!-- Toast 複製成功提示框 -->
+    <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-slate-900/90 backdrop-blur-sm text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-2.5 translate-y-20 opacity-0 pointer-events-none transition-all duration-300 z-50">
+        <span class="flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500 text-white">
+            <i data-lucide="check" class="w-3.5 h-3.5"></i>
+        </span>
+        <span class="text-sm font-medium">Prompt 已成功複製到剪貼簿！</span>
+    </div>
+
+    <!-- JavaScript 邏輯控制 -->
+    <script>
+        // Google Sheet 的公開 JSON 資料端點
+        const SHEET_ID = '1mlRa0tpdhuB68J86BuFC6hWGSEKyTyw5tHNJ5ooWGqg';
+        const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+
+        let rawPrompts = []; // 儲存原始資料的陣列
+        let filteredPrompts = []; // 篩選後的資料陣列
+        let categories = ['全部']; // 分類清單
+        let currentCategory = '全部';
+        let searchQuery = '';
+
+        // 預設分類顏色調色盤 (用於卡片上方邊框及分類標籤)
+        const categoryColorMap = {
+            '全部': 'sky',
+            '內容創作': 'purple',
+            '筆記精煉': 'indigo',
+            '程式應用': 'blue',
+            '簡報表達': 'emerald',
+            '程式生成': 'cyan',
+            '文本優化': 'violet',
+            '生文校正': 'pink',
+            '專案企劃': 'orange',
+            '圖片生成': 'rose',
+            '筆記整理': 'teal',
+            '資訊整理': 'amber'
+        };
+
+        // 取得顏色樣式的輔助函式
+        function getColorClasses(category) {
+            const color = categoryColorMap[category] || 'sky';
+            return {
+                border: `border-t-4 border-${color}-500`,
+                tagBg: `bg-${color}-50 text-${color}-600 border border-${color}-200`,
+                btnActive: `bg-${color}-600 text-white shadow-${color}-100`,
+                btnHover: `hover:bg-${color}-50 hover:text-${color}-600 border border-slate-200`
+            };
+        }
+
+        // 動態注入 Tailwind 暫存安全色，避免動態類別因未使用而被過濾
+        const tailwindStyleShim = document.createElement('style');
+        tailwindStyleShim.innerHTML = `
+            .border-sky-500 { border-top-color: #0ea5e9 !important; } .bg-sky-50 { background-color: #f0f9ff; } .text-sky-600 { color: #0284c7; } .border-sky-200 { border-color: #bae6fd; } .bg-sky-600 { background-color: #0284c7; }
+            .border-purple-500 { border-top-color: #a855f7 !important; } .bg-purple-50 { background-color: #faf5ff; } .text-purple-600 { color: #9333ea; } .border-purple-200 { border-color: #e9d5ff; } .bg-purple-600 { background-color: #9333ea; }
+            .border-indigo-500 { border-top-color: #6366f1 !important; } .bg-indigo-50 { background-color: #eef2ff; } .text-indigo-600 { color: #4f46e5; } .border-indigo-200 { border-color: #c7d2fe; } .bg-indigo-600 { background-color: #4f46e5; }
+            .border-blue-500 { border-top-color: #3b82f6 !important; } .bg-blue-50 { background-color: #eff6ff; } .text-blue-600 { color: #2563eb; } .border-blue-200 { border-color: #bfdbfe; } .bg-blue-600 { background-color: #2563eb; }
+            .border-emerald-500 { border-top-color: #10b981 !important; } .bg-emerald-50 { background-color: #ecfdf5; } .text-emerald-600 { color: #059669; } .border-emerald-200 { border-color: #a7f3d0; } .bg-emerald-600 { background-color: #059669; }
+            .border-cyan-500 { border-top-color: #06b6d4 !important; } .bg-cyan-50 { background-color: #ecfeff; } .text-cyan-600 { color: #0891b2; } .border-cyan-200 { border-color: #a5f3fc; } .bg-cyan-600 { background-color: #0891b2; }
+            .border-violet-500 { border-top-color: #8b5cf6 !important; } .bg-violet-50 { background-color: #f5f3ff; } .text-violet-600 { color: #7c3aed; } .border-violet-200 { border-color: #ddd6fe; } .bg-violet-600 { background-color: #7c3aed; }
+            .border-pink-500 { border-top-color: #ec4899 !important; } .bg-pink-50 { background-color: #fdf2f8; } .text-pink-600 { color: #db2777; } .border-pink-200 { border-color: #fbcfe8; } .bg-pink-600 { background-color: #db2777; }
+            .border-orange-500 { border-top-color: #f97316 !important; } .bg-orange-50 { background-color: #fff7ed; } .text-orange-600 { color: #ea580c; } .border-orange-200 { border-color: #fed7aa; } .bg-orange-600 { background-color: #ea580c; }
+            .border-rose-500 { border-top-color: #f43f5e !important; } .bg-rose-50 { background-color: #fff1f2; } .text-rose-600 { color: #e11d48; } .border-rose-200 { border-color: #fecdd3; } .bg-rose-600 { background-color: #e11d48; }
+            .border-teal-500 { border-top-color: #14b8a6 !important; } .bg-teal-50 { background-color: #f0fdfa; } .text-teal-600 { color: #0d9488; } .border-teal-200 { border-color: #99f6e4; } .bg-teal-600 { background-color: #0d9488; }
+            .border-amber-500 { border-top-color: #f59e0b !important; } .bg-amber-50 { background-color: #fffbeb; } .text-amber-600 { color: #d97706; } .border-amber-200 { border-color: #fde68a; } .bg-amber-600 { background-color: #d97706; }
+            .border-slate-500 { border-top-color: #64748b !important; } .bg-slate-50 { background-color: #f8fafc; } .text-slate-600 { color: #475569; } .border-slate-200 { border-color: #e2e8f0; } .bg-slate-600 { background-color: #475569; }
+        `;
+        document.head.appendChild(tailwindStyleShim);
+
+        // 初始化載入
+        window.onload = async function() {
+            await fetchSheetData();
+            setupEventListeners();
+        };
+
+        // 從 Google Sheet 抓取資料
+        async function fetchSheetData() {
+            try {
+                const response = await fetch(SHEET_URL);
+                const text = await response.text();
+                
+                // 處理 Google gviz/tq 回傳的 JSON 格式
+                const jsonStart = text.indexOf('{');
+                const jsonEnd = text.lastIndexOf('}') + 1;
+                const jsonData = JSON.parse(text.substring(jsonStart, jsonEnd));
+                
+                // 解析資料列
+                const rows = jsonData.table.rows;
+                const cols = jsonData.table.cols;
+                
+                rawPrompts = rows.map((row, index) => {
+                    const cells = row.c;
+                    return {
+                        id: index,
+                        category: cells[0]?.v ? cells[0].v.trim() : '未分類',
+                        title: cells[1]?.v ? cells[1].v.trim() : '無標題',
+                        content: cells[2]?.v ? cells[2].v.trim() : ''
+                    };
+                }).filter(item => item.title !== '無標題' || item.content !== ''); // 過濾空行
+
+                // 解析全部分類並排序
+                const uniqueCategories = [...new Set(rawPrompts.map(item => item.category))];
+                categories = ['全部', ...uniqueCategories.filter(cat => cat !== '未分類')];
+
+                // 初次渲染
+                renderCategories();
+                filterAndRender();
+
+                // 隱藏骨架載入動畫，顯示資料
+                document.getElementById('skeletonLoader').classList.add('hidden');
+                document.getElementById('promptGrid').classList.remove('hidden');
+
+                // 重新載入 Lucide Icons 以確保新生成的 DOM 有圖示
+                lucide.createIcons();
+
+            } catch (error) {
+                console.error("資料載入失敗：", error);
+                // 載入失敗時使用備用 Mock 資料
+                useMockData();
+            }
+        }
+
+        // 備用 Mock 資料
+        function useMockData() {
+            console.log("使用內建備用資料...");
+            rawPrompts = [
+                {
+                    id: 1,
+                    category: "內容創作",
+                    title: "意義單詞",
+                    content: "將文章的重點部分，尋找一個代表性英文字母，並使這些字母的首字組合成一個有意義的單詞（如「VISION」）。"
+                },
+                {
+                    id: 2,
+                    category: "內容創作",
+                    title: "品牌名稱",
+                    content: "完成 ChatGPT 角色定義後，依據“品牌定義”與“產品介紹”發想5個產品名稱與標題（口號）。\n- 提示詞指令：描述品牌與產品，請列出 數字 個產品名稱與行銷標題建議。(*品牌定義*描述、*產品介紹*描述)\n- Prompt 範例: \n我推出一個運動鞋品牌，今年會銷售一款新型跑步鞋..."
+                },
+                {
+                    id: 3,
+                    category: "筆記精煉",
+                    title: "長篇文章",
+                    content: "為這一篇長長文章，進行以下四個步驟，每一個步驟都要提供給文章與標示出來：\n第1、請為這篇長文件生成一份簡短摘要。\n第2、請基於上一個摘要，不要遺漏任何專有名詞、數字或關鍵人物，重新生成一份摘要。\n第3、現在，請將摘要中每一句話都濃縮成更簡潔的表達，同時保留核心概念。"
+                },
+                {
+                    id: 4,
+                    category: "筆記精煉",
+                    title: "書籍精煉",
+                    content: "請對 @[檔名]\n啟動【終極煉金管線】，一次執行四步驟整合：\n第一步：全域架構導航 (Stage 01)\n執行 stage-1-navigator，對精煉稿進行深度描描，產出知識地圖與反直覺預警。\n存檔：01_Map_[主題簡稱].md。\n第二步：價值 DNA 診斷 (Stage 02)"
+                },
+                {
+                    id: 5,
+                    category: "筆記精煉",
+                    title: "書籍精煉",
+                    content: ""
+                },
+                {
+                    id: 6,
+                    category: "筆記精煉",
+                    title: "提取練習",
+                    content: "我剛讀完了關於 [填入具體段落標題] 的內容。現在請幫我進行深度研磨：\n\n1-底層邏輯拷問：針對這段內容的「運作原理」向我提問，測試我是否理解了「為什麼有效」，而非只是記住步驟。\n\n2-環境等效：如果這段概念有複雜的轉變..."
+                },
+                {
+                    id: 7,
+                    category: "內容創作",
+                    title: "影片清理",
+                    content: "你的角色是一位「逐字稿校對員」，不是編輯。\n任務：\n1-僅刪除口語填充詞、重複說法、明顯冗詞\n2-不得改寫句型、不得改變原意、不得加入新解釋\n規則：\n1-原句順序必須完全一致\n2-若要餘任何詞話，需確保前後輿"
+                },
+                {
+                    id: 8,
+                    category: "內容創作",
+                    title: "影片清理",
+                    content: "你的角色是一位「內容結構化整理員」，不是編輯、不是評論者。\n\n我會提供一段約 4000 字的影片文字內容，請你在完全保留原作者語意與立場的前提下，\n進行「保留語意的濃縮」，將內容壓縮至 約 2000 字。全文用繁體中文呈現。"
+                }
+            ];
+
+            const uniqueCategories = [...new Set(rawPrompts.map(item => item.category))];
+            categories = ['全部', ...uniqueCategories];
+
+            renderCategories();
+            filterAndRender();
+
+            // 隱藏動畫，顯示資料
+            document.getElementById('skeletonLoader').classList.add('hidden');
+            document.getElementById('promptGrid').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        // 渲染分類按鈕
+        function renderCategories() {
+            const container = document.getElementById('categoryContainer');
+            container.innerHTML = '';
+
+            categories.forEach(category => {
+                const colors = getColorClasses(category);
+                const button = document.createElement('button');
+                
+                button.className = "px-4 py-2 rounded-full text-xs md:text-sm font-medium transition-all duration-300 border focus:outline-none";
+                button.textContent = category;
+
+                if (currentCategory === category) {
+                    button.className += ` ${colors.btnActive} border-transparent scale-105`;
+                } else {
+                    button.className += ` bg-white/90 text-slate-600 border-slate-200/80 hover:border-sky-300 hover:text-sky-600`;
+                }
+
+                button.onclick = () => {
+                    currentCategory = category;
+                    renderCategories();
+                    filterAndRender();
+                };
+
+                container.appendChild(button);
+            });
+        }
+
+        // 搜尋與篩選邏輯
+        function filterAndRender() {
+            searchQuery = document.getElementById('searchInput').value.trim().toLowerCase();
+
+            filteredPrompts = rawPrompts.filter(item => {
+                const matchesCategory = (currentCategory === '全部' || item.category === currentCategory);
+                const matchesSearch = (
+                    item.title.toLowerCase().includes(searchQuery) || 
+                    item.content.toLowerCase().includes(searchQuery) ||
+                    item.category.toLowerCase().includes(searchQuery)
+                );
+                return matchesCategory && matchesSearch;
+            });
+
+            document.getElementById('cardCount').textContent = `${filteredPrompts.length} 個項目`;
+            renderCards();
+        }
+
+        // 渲染卡片
+        function renderCards() {
+            const grid = document.getElementById('promptGrid');
+            const alertBox = document.getElementById('noDataAlert');
+            grid.innerHTML = '';
+
+            if (filteredPrompts.length === 0) {
+                grid.classList.add('hidden');
+                alertBox.classList.remove('hidden');
+                return;
+            }
+
+            alertBox.classList.add('hidden');
+            grid.classList.remove('hidden');
+
+            filteredPrompts.forEach(item => {
+                const colors = getColorClasses(item.category);
+                const card = document.createElement('div');
+                
+                // 卡片本體：使用白底，在水藍色背景襯托下非常有質感
+                card.className = `bg-white/95 rounded-2xl shadow-sm hover:shadow-xl hover:shadow-sky-100/50 transition-all duration-300 flex flex-col justify-between h-[380px] overflow-hidden ${colors.border} border border-sky-100/40 hover:-translate-y-1`;
+
+                card.innerHTML = `
+                    <div class="p-5 flex-1 flex flex-col min-h-0">
+                        <!-- 上方標籤 -->
+                        <div class="mb-3.5">
+                            <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide ${colors.tagBg}">
+                                ${item.category}
+                            </span>
+                        </div>
+                        
+                        <!-- 標題 -->
+                        <h3 class="text-lg font-bold text-slate-800 mb-3 truncate" title="${item.title}">
+                            ${item.title}
+                        </h3>
+                        
+                        <!-- 內容 (美化過的滾動條) -->
+                        <div class="text-slate-600 text-sm leading-relaxed overflow-y-auto flex-1 custom-scrollbar pr-1 whitespace-pre-line">
+                            ${item.content || '<span class="text-slate-300 italic">（此提示詞無內文）</span>'}
+                        </div>
+                    </div>
+                    
+                    <!-- 複製按鈕區 -->
+                    <div class="px-5 pb-5 pt-2 bg-gradient-to-t from-white via-white to-transparent">
+                        <button onclick="copyPrompt(this, \`${encodeURIComponent(item.content)}\`)" 
+                                class="w-full py-2.5 px-4 bg-sky-600 hover:bg-sky-700 text-white font-medium text-sm rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-md shadow-sky-100 active:scale-[0.98]">
+                            <i data-lucide="copy" class="w-4 h-4"></i>
+                            <span>複製 Prompt</span>
+                        </button>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+
+            lucide.createIcons();
+        }
+
+        // 複製 Prompt
+        function copyPrompt(button, encodedText) {
+            const textToCopy = decodeURIComponent(encodedText);
+            
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(textToCopy)
+                    .then(() => showToast())
+                    .catch(() => fallbackCopy(textToCopy));
+            } else {
+                fallbackCopy(textToCopy);
+            }
+        }
+
+        // 備用複製方案
+        function fallbackCopy(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast();
+            } catch (err) {
+                console.error('無法複製文字：', err);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // 顯示複製成功的 Toast 提示
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+            }, 2500);
+        }
+
+        function setupEventListeners() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', () => {
+                filterAndRender();
+            });
+        }
+    </script>
+</body>
+</html>
